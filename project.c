@@ -2,13 +2,13 @@
 #include <string.h>
 #include <ctype.h>
 
-int retrieveData(int data[], int size, FILE *pF);
-void getRange(int list[], int size, int range[2]);
-int checkRange(int data[], int size);
-int checkStartStopChar(int data[], int size);
-int decodeChar(int data[], int size, int decoding[]);
-int checkCK(int decoding[], int length);
-void getMessage(int decoding[], int msgLen, char msg[]);
+int retrieve_data(int data[], int size, int msgLen, FILE *pF);
+void find_range(int list[], int size, int range[2]);
+int check_range(int data[], int size);
+int check_start_stop(int data[], int size);
+int decode(int data[], int size, int decoding[]);
+int check_C_K(int decoding[], int length);
+void convert_message(int decoding[], int msgLen, char msg[]);
 
 int main () {
     FILE *pF = fopen("input.txt", "r");
@@ -26,34 +26,34 @@ int main () {
             int msgLen = length - 2;
             char msg[msgLen + 1];
 
-            if(!retrieveData(data, size, pF)) {
+            if(!retrieve_data(data, size, msgLen, pF)) {
                 printf("Case %d: bad code\n", cases + 1);
                 fscanf(pF, "%d", &size);
                 continue;
             };
 
-            if (!checkRange(data, size)) {
+            if (!check_range(data, size)) {
                 printf("Case %d: bad code\n", cases + 1);
                 fscanf(pF, "%d", &size);
                 continue;
             } 
 
-            if (!checkStartStopChar(data, size)) {
+            if (!check_start_stop(data, size)) {
                 printf("Case %d: bad code\n", cases + 1);
                 fscanf(pF, "%d", &size);
                 continue;
             } 
 
-            if (!decodeChar(data, size, decoding)) {
+            if (!decode(data, size, decoding)) {
                 printf("Case %d: bad code\n", cases + 1);
                 fscanf(pF, "%d", &size);
                 continue;
             }
 
-            finalResult = checkCK(decoding, length);
+            finalResult = check_C_K(decoding, length);
 
             if (finalResult > 0) {
-                getMessage(decoding, msgLen, msg);
+                convert_message(decoding, msgLen, msg);
                 printf("Case %d: %s\n", cases + 1, msg);
             } else {
                 if (!finalResult) {
@@ -72,15 +72,15 @@ int main () {
     return 0;
 }
 
-int retrieveData(int data[], int size, FILE *pF) {
+int retrieve_data(int data[], int size, int msgLen, FILE *pF) {
     int i, flag = 1;
 
-    // * GET DATA FROM THE INPUT FILE, AND CHECK WHETHER THE DATA <= 150 OR WHETHER THE LIGHT INTENSITY >= 1 AND <= 200
-    for (int i = 0; i < size; i++) {
+    // * GET DATA FROM THE INPUT FILE, CHECK WHETHER THE MESSAGE IS NOT ZERO LENGTH, AND CHECK WHETHER THE DATA <= 150 OR WHETHER THE LIGHT INTENSITY >= 1 AND <= 200
+    for (i = 0; i < size; i++) {
         fscanf(pF, "%d", &data[i]);
     }
 
-    if (size > 150) {
+    if (size > 150 || msgLen < 1) {
         flag = 0;
     }
 
@@ -94,7 +94,7 @@ int retrieveData(int data[], int size, FILE *pF) {
     return flag;
 }
 
-void getRange(int list[], int size, int range[2]) {
+void find_range(int list[], int size, int range[2]) {
     // * GET THE MODE FROM NARROW AND WIDE LIST
      int mode = 0, maxCount = 0, count, i, j;
 
@@ -118,7 +118,7 @@ void getRange(int list[], int size, int range[2]) {
     range[1] = mode + (mode * 5/100);
 }
 
-int checkRange(int data[], int size) {
+int check_range(int data[], int size) {
     int i, j, min = 200, max = 0, avg = 0, flag = 1;
     int wideRange[2], narrowRange[2];
     int wideIndex = 0, narrowIndex = 0;
@@ -140,7 +140,7 @@ int checkRange(int data[], int size) {
     avg = (min + max) / 2;
 
 
-    // * CALL GETRANGE() FUNCTION TO SEPERATE WIDE AND NARROW ELEMENTS
+    // * CALL find_range() FUNCTION TO SEPERATE WIDE AND NARROW ELEMENTS
     for (i = 0; i < size; i++) {
         wideList[i] = 0;
         narrowList[i] = 0;
@@ -156,8 +156,8 @@ int checkRange(int data[], int size) {
         }
     }
 
-    getRange(wideList, wideIndex, wideRange);
-    getRange(narrowList, narrowIndex, narrowRange);
+    find_range(wideList, wideIndex, wideRange);
+    find_range(narrowList, narrowIndex, narrowRange);
 
 
     // * CHECK WHETHER ALL OF THE ELEMENTS IS ON RANGE; IF YES, THEN TURN THE ELEMENTS INTO 1 AND 0
@@ -182,7 +182,7 @@ int checkRange(int data[], int size) {
     return flag;
 }
 
-int checkStartStopChar(int data[], int size) {
+int check_start_stop(int data[], int size) {
     int i, j, startIndex = 0, endIndex = 0, flag = 0;
     char start[6];
     char end[6];
@@ -220,7 +220,7 @@ int checkStartStopChar(int data[], int size) {
     return flag;
 }
 
-int decodeChar(int data[], int size, int decoding[]) {
+int decode(int data[], int size, int decoding[]) {
     int i, j, len = 0, flag = 1;
     char lists[11][6] = {"10001", "11000", "00101", "01001", "01100", "10010", "00011", "10100", "10000", "00001", "00100"};
 
@@ -255,7 +255,7 @@ int decodeChar(int data[], int size, int decoding[]) {
     return flag;
 }
 
-int checkCK(int decoding[], int length) {
+int check_C_K(int decoding[], int length) {
     int i, j, n = length - 2;
     int charC = decoding[n];
     int charK = decoding[n + 1];
@@ -284,7 +284,7 @@ int checkCK(int decoding[], int length) {
     return flag;
 }
 
-void getMessage(int decoding[], int msgLen, char msg[]) {
+void convert_message(int decoding[], int msgLen, char msg[]) {
     int index = 0, i;
 
     // * CONVERT THE DECODING FROM ARRAY OF INT INTO STRING
