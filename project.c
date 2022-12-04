@@ -75,7 +75,6 @@ int main () {
 int retrieve_data(int data[], int size, int msgLen, FILE *pF) {
     int i, flag = 1;
 
-    // * GET DATA FROM THE INPUT FILE, CHECK WHETHER THE SIZE IS VALID BY HAVING 5 AS ITS MOD WITH 6, CHECK WHETHER THE MESSAGE IS NOT ZERO LENGTH, AND CHECK WHETHER THE DATA <= 150 OR WHETHER THE LIGHT INTENSITY >= 1 AND <= 200
     for (i = 0; i < size; i++) {
         fscanf(pF, "%d", &data[i]);
     }
@@ -95,8 +94,7 @@ int retrieve_data(int data[], int size, int msgLen, FILE *pF) {
 }
 
 void find_range(int list[], int size, int range[3]) {
-    // * GET THE MODE FROM NARROW AND WIDE LIST
-     int mode = 0, maxCount = 0, count, i, j;
+    int mode = 0, maxCount = 0, count, i, j;
 
     for (i = 0; i < size; ++i) {
         count = 0;
@@ -113,7 +111,6 @@ void find_range(int list[], int size, int range[3]) {
         }
     }
 
-    // * FIND ERROR RANGE BASED ON THE MODE
     range[0] = mode * 0.95;
     range[1] = mode;
     range[2] = mode * 1.05;
@@ -126,8 +123,6 @@ int check_range(int data[], int size) {
     int wideList[size];
     int narrowList[size];
 
-
-    // * FIND MIN AND MAX TO GET THE AVERAGE
     for (i = 0; i < size; i++) {
         if (data[i] < min) {
             min = data[i];
@@ -140,8 +135,6 @@ int check_range(int data[], int size) {
 
     avg = (min + max) / 2;
 
-
-    // * CALL find_range() FUNCTION TO SEPARATE WIDE AND NARROW ELEMENTS; CHECK WHETHER THE WIDTH OF THE WIDE REGION IS THE TWICE OF THE WIDE REGION
     for (i = 0; i < size; i++) {
         wideList[i] = 0;
         narrowList[i] = 0;
@@ -164,8 +157,6 @@ int check_range(int data[], int size) {
         flag = 0;
     }
 
-
-    // * CHECK WHETHER ALL OF THE ELEMENTS IS ON RANGE; IF YES, THEN TURN THE ELEMENTS INTO 1 AND 0
     for (i = 0; i < size; i++) {
         if (data[i] > avg) {
             if (data[i] < wideRange[0] || data[i] > wideRange[2]) {
@@ -192,7 +183,6 @@ int check_start_stop(int data[], int size) {
     char start[6];
     char end[6];
 
-    // * TAKE THE FIRST AND LAST 5 ELEMENTS AND TURN THEM FROM INT TO STRING, TO CHECK SS CHAR
     for (i = 0; i < 5; i++) {
         start[i] = data[i];
         startIndex += sprintf(&start[startIndex], "%d", data[i]);   
@@ -201,7 +191,6 @@ int check_start_stop(int data[], int size) {
         endIndex += sprintf(&end[endIndex], "%d", data[i]);  
     }
 
-    // * IF SS IS DETECTED BACKWARDS, REVERSE THE DATA
     if (strcmp(start, "00110") == 0 && strcmp(end, "00110") == 0) {
         flag = 1;
     } else if (strcmp(start, "01100") == 0 && strcmp(end, "01100") == 0) {
@@ -214,7 +203,6 @@ int check_start_stop(int data[], int size) {
         flag = 1;
     }
 
-    // * CHECK WHETHER THE ALL OF THE SEPARATORS IS ZERO 
     for (i = 5; i < size; i+=6) {
         if (data[i] != 0) {
             flag = 0;
@@ -229,9 +217,8 @@ int decode(int data[], int size, int decoding[]) {
     int i, j, len = 0, flag = 1;
     char lists[11][6] = {"10001", "11000", "00101", "01001", "01100", "10010", "00011", "10100", "10000", "00001", "00100"};
 
-    // * TAKE FIVE ELEMENTS AND CONVERT THEM TO ENCODING STRING, GET RESULT BASED ON THE ENCODING
     for (i = 6; i < size - 5; i+=6) {
-        char encodingChar[6]; // 11000 
+        char encodingChar[6]; 
         int index = 0; 
         
         for (j = 0; j < 5; j++) {
@@ -240,7 +227,6 @@ int decode(int data[], int size, int decoding[]) {
         }
         encodingChar[5] = '\0';
         
-        // * STORES EACH ENCODING RESULT IN THE DECODING ARRAY AS WELL AS CHECKING WHETHER THE DECODING CAN BE SUCCESSFULLY ENCODED
         decoding[len] = -1;
 
         for (j = 0; j < 11; j++) {
@@ -267,16 +253,13 @@ int check_C_K(int decoding[], int length) {
     int sumC = 0, sumK = 0;
     int flag = 1;
 
-    // * SET UP C CHECKER
     for (i = 1; i <= n; i++) {
         sumC += ((n - i) % 10 + 1) * decoding[i - 1];
     }
     
-    // * IF C IS CORRECT, CHECK K; RETURNS 1 IF C AND K CORRECT, RETURNS 0 IF C IS INCORRECT, RETURNS -1 IF K IS INCORRECT
     if (charC != sumC % 11) {
         flag = 0;
     } else {
-        // * SET UP K CHECKER
         for (i = 1; i <= n + 1; i++) {
             sumK += ((n - i + 1) % 9 + 1) * decoding[i - 1];
         }
@@ -292,7 +275,6 @@ int check_C_K(int decoding[], int length) {
 void convert_message(int decoding[], int msgLen, char msg[]) {
     int index = 0, i;
 
-    // * CONVERT THE DECODING FROM ARRAY OF INT INTO STRING
     for (i = 0; i < msgLen; i++) {
         if (decoding[i] == 10) {
             msg[i] = '-';
