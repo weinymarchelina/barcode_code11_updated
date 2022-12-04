@@ -3,7 +3,7 @@
 #include <ctype.h>
 
 int retrieve_data(int data[], int size, int msgLen, FILE *pF);
-void find_range(int list[], int size, int range[2]);
+void find_range(int list[], int size, int range[3]);
 int check_range(int data[], int size);
 int check_start_stop(int data[], int size);
 int decode(int data[], int size, int decoding[]);
@@ -75,12 +75,12 @@ int main () {
 int retrieve_data(int data[], int size, int msgLen, FILE *pF) {
     int i, flag = 1;
 
-    // * GET DATA FROM THE INPUT FILE, CHECK WHETHER THE MESSAGE IS NOT ZERO LENGTH, AND CHECK WHETHER THE DATA <= 150 OR WHETHER THE LIGHT INTENSITY >= 1 AND <= 200
+    // * GET DATA FROM THE INPUT FILE, CHECK WHETHER THE SIZE IS VALID BY HAVING 5 AS ITS MOD WITH 6, CHECK WHETHER THE MESSAGE IS NOT ZERO LENGTH, AND CHECK WHETHER THE DATA <= 150 OR WHETHER THE LIGHT INTENSITY >= 1 AND <= 200
     for (i = 0; i < size; i++) {
         fscanf(pF, "%d", &data[i]);
     }
 
-    if (size > 150 || msgLen < 1) {
+    if (size > 150 || size % 6 != 5 || msgLen < 1) {
         flag = 0;
     }
 
@@ -94,7 +94,7 @@ int retrieve_data(int data[], int size, int msgLen, FILE *pF) {
     return flag;
 }
 
-void find_range(int list[], int size, int range[2]) {
+void find_range(int list[], int size, int range[3]) {
     // * GET THE MODE FROM NARROW AND WIDE LIST
      int mode = 0, maxCount = 0, count, i, j;
 
@@ -114,13 +114,14 @@ void find_range(int list[], int size, int range[2]) {
     }
 
     // * FIND ERROR RANGE BASED ON THE MODE
-    range[0] = mode - (mode * 5/100);
-    range[1] = mode + (mode * 5/100);
+    range[0] = mode * 0.95;
+    range[1] = mode;
+    range[2] = mode * 1.05;
 }
 
 int check_range(int data[], int size) {
     int i, j, min = 200, max = 0, avg = 0, flag = 1;
-    int wideRange[2], narrowRange[2];
+    int wideRange[3], narrowRange[3];
     int wideIndex = 0, narrowIndex = 0;
     int wideList[size];
     int narrowList[size];
@@ -140,7 +141,7 @@ int check_range(int data[], int size) {
     avg = (min + max) / 2;
 
 
-    // * CALL find_range() FUNCTION TO SEPERATE WIDE AND NARROW ELEMENTS
+    // * CALL find_range() FUNCTION TO SEPARATE WIDE AND NARROW ELEMENTS; CHECK WHETHER THE WIDTH OF THE WIDE REGION IS THE TWICE OF THE WIDE REGION
     for (i = 0; i < size; i++) {
         wideList[i] = 0;
         narrowList[i] = 0;
@@ -159,18 +160,22 @@ int check_range(int data[], int size) {
     find_range(wideList, wideIndex, wideRange);
     find_range(narrowList, narrowIndex, narrowRange);
 
+    if (wideRange[1] != 2 * narrowRange[1]) {
+        flag = 0;
+    }
+
 
     // * CHECK WHETHER ALL OF THE ELEMENTS IS ON RANGE; IF YES, THEN TURN THE ELEMENTS INTO 1 AND 0
     for (i = 0; i < size; i++) {
         if (data[i] > avg) {
-            if (data[i] < wideRange[0] || data[i] > wideRange[1]) {
+            if (data[i] < wideRange[0] || data[i] > wideRange[2]) {
                 flag = 0;
                 break;
             } else {
                 data[i] = 1;
             }
         } else {
-            if (data[i] < narrowRange[0] || data[i] > narrowRange[1]) {
+            if (data[i] < narrowRange[0] || data[i] > narrowRange[2]) {
                 flag = 0;
                 break;
             } else {
@@ -209,7 +214,7 @@ int check_start_stop(int data[], int size) {
         flag = 1;
     }
 
-    // * CHECK WHETHER THE ALL OF THE SEPERATORS IS ZERO 
+    // * CHECK WHETHER THE ALL OF THE SEPARATORS IS ZERO 
     for (i = 5; i < size; i+=6) {
         if (data[i] != 0) {
             flag = 0;
@@ -226,8 +231,8 @@ int decode(int data[], int size, int decoding[]) {
 
     // * TAKE FIVE ELEMENTS AND CONVERT THEM TO ENCODING STRING, GET RESULT BASED ON THE ENCODING
     for (i = 6; i < size - 5; i+=6) {
-        char encodingChar[6];
-        int index = 0;;
+        char encodingChar[6]; // 11000 
+        int index = 0; 
         
         for (j = 0; j < 5; j++) {
             encodingChar[j] = data[i + j];
