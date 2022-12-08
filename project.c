@@ -11,7 +11,7 @@ int check_C_K(int decoding[], int length);
 void convert_message(int decoding[], int msgLen, char msg[]);
 
 int main () {
-    FILE *pF = fopen("input.txt", "r");
+    FILE *pF = fopen("test.txt", "r");
     int size, cases, i;
 
     if (pF == NULL) {
